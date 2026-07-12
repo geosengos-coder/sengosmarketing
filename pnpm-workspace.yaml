@@ -1,0 +1,24 @@
+packages:
+  - "frontend"
+  - "backend"
+  - "database"
+  - "packages/*"
+
+# Allowlist of dependencies permitted to run install/build scripts (pnpm sandboxes
+# the rest by default). Kept minimal and intentional.
+onlyBuiltDependencies:
+  - "@clerk/shared"
+  - "@prisma/client"
+  - "@prisma/engines"
+  - "esbuild"
+  - "prisma"
+  - "sharp"
+  - "unrs-resolver"
+allowBuilds:
+  '@clerk/shared': set this to true or false
+  '@prisma/client': set this to true or false
+  '@prisma/engines': set this to true or false
+  esbuild: set this to true or false
+  prisma: set this to true or false
+  sharp: set this to true or false
+  unrs-resolver: set this to true or false

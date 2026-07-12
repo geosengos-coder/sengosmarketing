@@ -1,0 +1,21 @@
+# Local development database. Production uses managed Postgres (e.g. Neon) — see Architecture.md.
+services:
+  postgres:
+    image: postgres:16
+    container_name: operatoros-postgres
+    environment:
+      POSTGRES_USER: operatoros
+      POSTGRES_PASSWORD: operatoros
+      POSTGRES_DB: operatoros
+    ports:
+      - "5432:5432"
+    volumes:
+      - operatoros_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U operatoros"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  operatoros_pgdata:

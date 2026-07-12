@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  # Fast, hermetic checks — no database.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Prisma validate + generate
+        working-directory: database
+        run: |
+          ./node_modules/.bin/prisma validate
+          ./node_modules/.bin/prisma generate
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+          DIRECT_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test # unit/contract tests; DB tests skip (RUN_DB_TESTS unset)
+      - run: pnpm format:check
+
+  # Database + tenant-isolation (RLS) — the security gate.
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: operatoros
+          POSTGRES_PASSWORD: operatoros
+          POSTGRES_DB: operatoros
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U operatoros"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Privileged connection: runs migrations, role setup, and seed.
+      ADMIN_URL: postgresql://operatoros:operatoros@localhost:5432/operatoros
+      # Limited (non-superuser) connection: RLS ONLY engages for this role.
+      APP_URL: postgresql://app_user:app_pw@localhost:5432/operatoros
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        working-directory: database
+        run: ./node_modules/.bin/prisma generate
+        env:
+          DATABASE_URL: ${{ env.ADMIN_URL }}
+          DIRECT_URL: ${{ env.ADMIN_URL }}
+
+      - name: Apply migration (tables + RLS policies)
+        working-directory: database
+        run: ./node_modules/.bin/prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ env.ADMIN_URL }}
+          DIRECT_URL: ${{ env.ADMIN_URL }}
+
+      - name: Create limited application role
+        working-directory: database
+        run: ./node_modules/.bin/prisma db execute --schema prisma/schema.prisma --file prisma/sql/app-role.sql
+        env:
+          DATABASE_URL: ${{ env.ADMIN_URL }}
+          DIRECT_URL: ${{ env.ADMIN_URL }}
+
+      - name: Seed permissions + system roles
+        working-directory: database
+        run: ./node_modules/.bin/tsx src/seed.ts
+        env:
+          DATABASE_URL: ${{ env.ADMIN_URL }}
+          DIRECT_URL: ${{ env.ADMIN_URL }}
+
+      - name: Tenant isolation tests (as non-superuser app_user)
+        working-directory: database
+        run: ./node_modules/.bin/vitest run
+        env:
+          RUN_DB_TESTS: "1"
+          DATABASE_URL: ${{ env.APP_URL }}
+          DIRECT_URL: ${{ env.APP_URL }}

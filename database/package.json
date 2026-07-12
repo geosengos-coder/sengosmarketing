@@ -1,0 +1,35 @@
+{
+  "name": "@operatoros/database",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "apply-roles": "prisma db execute --schema prisma/schema.prisma --file prisma/sql/app-role.sql",
+    "validate": "prisma validate",
+    "format": "prisma format",
+    "seed": "tsx src/seed.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "prisma": {
+    "seed": "tsx src/seed.ts"
+  },
+  "dependencies": {
+    "@operatoros/core": "workspace:*",
+    "@prisma/client": "^5.20.0"
+  },
+  "devDependencies": {
+    "@operatoros/config": "workspace:*",
+    "@types/node": "^22.7.0",
+    "prisma": "^5.20.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.0"
+  }
+}

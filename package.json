@@ -1,0 +1,28 @@
+{
+  "name": "operatoros",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@11.11.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,mjs}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,mjs}\"",
+    "db:generate": "pnpm --filter @operatoros/database generate",
+    "db:migrate": "pnpm --filter @operatoros/database migrate",
+    "db:seed": "pnpm --filter @operatoros/database seed",
+    "db:validate": "pnpm --filter @operatoros/database validate"
+  },
+  "devDependencies": {
+    "@operatoros/config": "workspace:*",
+    "prettier": "^3.3.3",
+    "turbo": "^2.1.0",
+    "typescript": "^5.6.2"
+  }
+}

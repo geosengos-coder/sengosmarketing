@@ -1,0 +1,12 @@
+import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
+
+/** Liveness probe. Public (see middleware). */
+export function GET() {
+  return NextResponse.json({
+    status: "ok",
+    service: "operatoros-web",
+    time: new Date().toISOString(),
+  });
+}

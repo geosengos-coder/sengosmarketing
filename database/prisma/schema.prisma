@@ -1,0 +1,366 @@
+// OperatorOS — data model (Phase 0 foundation).
+// Multi-tenant, DB-authoritative for organizations/members/roles/permissions (ADR-0009).
+// Tenant isolation is enforced by Postgres Row-Level Security (ADR-0003); see prisma/sql/rls-policies.sql.
+// Naming: tenant = Organization; every organization-owned row carries organizationId directly
+// (including 1:1 children) so isolation never depends on a join.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ================================================================ Identity & Access
+
+/// A person. Authentication is delegated to Clerk; this row mirrors the Clerk user
+/// (synced via webhook). Users are global and may belong to many organizations.
+model User {
+  id          String               @id @default(cuid())
+  clerkUserId String               @unique
+  email       String               @unique
+  firstName   String?
+  lastName    String?
+  imageUrl    String?
+  members     OrganizationMember[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+}
+
+/// The tenant. All organization-owned data references this via organizationId and is RLS-scoped.
+model Organization {
+  id     String             @id @default(cuid())
+  slug   String             @unique
+  name   String
+  plan   PlanTier           @default(FREE)
+  status OrganizationStatus @default(ACTIVE)
+
+  members         OrganizationMember[]
+  roles           Role[]
+  profile         BusinessProfile?
+  locations       Location[]
+  aiEmployees     AIEmployee[]
+  configurations  AIEmployeeConfiguration[]
+  knowledgeSources KnowledgeSource[]
+  knowledgeDocs   KnowledgeDocument[]
+  integrations    Integration[]
+  usageRecords    UsageRecord[]
+  auditLogs       AuditLog[]
+  eventLogs       EventLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// A user's membership in an organization, carrying their role. (Organization-owned.)
+model OrganizationMember {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  roleId         String
+  status         MemberStatus @default(ACTIVE)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           Role         @relation(fields: [roleId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+/// A named set of permissions. Phase 0 ships system roles (organizationId = null, isSystem = true);
+/// the nullable organizationId leaves room for per-organization custom roles later.
+model Role {
+  id             String               @id @default(cuid())
+  key            String
+  name           String
+  description    String
+  isSystem       Boolean              @default(false)
+  organizationId String?
+  organization   Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  permissions    RolePermission[]
+  members        OrganizationMember[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+}
+
+/// A capability string (e.g. "employee:create"). Global catalog, seeded from @operatoros/core.
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  description String
+  category    String
+  roles       RolePermission[]
+  createdAt   DateTime         @default(now())
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+// ================================================================ AI Platform Foundation
+
+/// An AI Employee — the central platform primitive. The receptionist is a row, not a table.
+model AIEmployee {
+  id             String                   @id @default(cuid())
+  organizationId String
+  name           String
+  type           EmployeeType             @default(RECEPTIONIST)
+  status         EmployeeStatus           @default(DRAFT)
+  organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  configuration  AIEmployeeConfiguration?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  @@index([organizationId])
+}
+
+/// The mutable configuration of an AI employee (persona, voice, greeting, instructions).
+/// 1:1 with AIEmployee; carries organizationId directly for RLS.
+model AIEmployeeConfiguration {
+  id             String       @id @default(cuid())
+  aiEmployeeId   String       @unique
+  organizationId String
+  persona        Json?
+  voice          Json?
+  greeting       String?
+  instructions   String?
+  settings       Json?
+  aiEmployee     AIEmployee   @relation(fields: [aiEmployeeId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+/// A source of business knowledge (metadata + its documents; embeddings arrive later).
+model KnowledgeSource {
+  id             String                @id @default(cuid())
+  organizationId String
+  type           KnowledgeSourceType
+  name           String
+  status         KnowledgeSourceStatus @default(PENDING)
+  metadata       Json?
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  documents      KnowledgeDocument[]
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@index([organizationId])
+}
+
+/// A document within a knowledge source. Chunking/embeddings (pgvector) are a later phase.
+model KnowledgeDocument {
+  id                String                  @id @default(cuid())
+  organizationId    String
+  knowledgeSourceId String
+  title             String
+  content           String?
+  status            KnowledgeDocumentStatus @default(PENDING)
+  metadata          Json?
+  organization      Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  source            KnowledgeSource         @relation(fields: [knowledgeSourceId], references: [id], onDelete: Cascade)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  @@index([organizationId])
+  @@index([knowledgeSourceId])
+}
+
+// ================================================================ Business Foundation
+
+/// A physical or service location belonging to an organization.
+model Location {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  addressLine1   String?
+  addressLine2   String?
+  city           String?
+  region         String?
+  postalCode     String?
+  country        String?
+  timezone       String       @default("UTC")
+  phone          String?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+/// The business context that grounds the AI employee. 1:1 with Organization.
+model BusinessProfile {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  legalName      String?
+  industry       String?
+  description    String?
+  website        String?
+  hours          Json?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+/// A connected third-party integration. Credentials are a vault reference, never raw (see Security.md).
+model Integration {
+  id             String              @id @default(cuid())
+  organizationId String
+  provider       IntegrationProvider
+  status         IntegrationStatus   @default(PENDING)
+  credentialsRef String?
+  metadata       Json?
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@unique([organizationId, provider])
+  @@index([organizationId])
+}
+
+// ================================================================ Platform Operations
+
+/// Append-only usage ledger — the billing source of truth, separate from analytics (ADR-0008).
+/// Immutable: no updatedAt. Idempotency key guarantees exactly-once accounting.
+model UsageRecord {
+  id             String       @id @default(cuid())
+  organizationId String
+  metric         UsageMetric
+  quantity       Decimal      @db.Decimal(18, 4)
+  unit           String
+  idempotencyKey String       @unique
+  source         String
+  occurredAt     DateTime
+  metadata       Json?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, metric, occurredAt])
+}
+
+/// Append-only audit trail of security-relevant actions (by users, the system, or AI employees).
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  actorType      ActorType
+  actorId        String?
+  action         String
+  targetType     String?
+  targetId       String?
+  metadata       Json?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+}
+
+/// Append-only domain/analytics event stream (distinct from AuditLog and from billing).
+model EventLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  type           String
+  source         String
+  payload        Json?
+  occurredAt     DateTime
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, type, occurredAt])
+}
+
+// ================================================================ Enums
+
+enum PlanTier {
+  FREE
+  STARTER
+  GROWTH
+  SCALE
+  ENTERPRISE
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum MemberStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+}
+
+enum EmployeeType {
+  RECEPTIONIST
+}
+
+enum EmployeeStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum KnowledgeSourceType {
+  DOCUMENT
+  URL
+  FAQ
+  TEXT
+}
+
+enum KnowledgeSourceStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum KnowledgeDocumentStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum IntegrationProvider {
+  GOOGLE_CALENDAR
+}
+
+enum IntegrationStatus {
+  PENDING
+  CONNECTED
+  DISCONNECTED
+  ERROR
+}
+
+enum UsageMetric {
+  CALL_MINUTES
+  CALL_COUNT
+  APPOINTMENT_BOOKED
+  MESSAGE_SENT
+}
+
+enum ActorType {
+  USER
+  SYSTEM
+  AI_EMPLOYEE
+}

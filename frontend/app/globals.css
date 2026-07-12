@@ -1,0 +1,29 @@
+/* Design tokens (canonical copy in @operatoros/ui/tokens.css). */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --border: 214 32% 91%;
+  --primary: 243 75% 59%;
+  --primary-foreground: 0 0% 100%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+  --border: 217 33% 20%;
+  --primary: 243 75% 66%;
+  --primary-foreground: 0 0% 100%;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-background text-foreground;
+}

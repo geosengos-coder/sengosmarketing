@@ -1,0 +1,7 @@
+# OperatorOS code ownership.
+# Placeholder — assign teams/individuals as the org grows.
+
+# Documentation is owned by whoever proposes the change; architecture docs need a maintainer review.
+/docs/03_Engineering/   @operatoros/maintainers
+/docs/04_AI/            @operatoros/maintainers
+/database/              @operatoros/maintainers

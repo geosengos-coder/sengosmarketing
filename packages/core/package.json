@@ -1,0 +1,21 @@
+{
+  "name": "@operatoros/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./authz": "./src/authz/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@operatoros/config": "workspace:*",
+    "eslint": "^9.11.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.0"
+  }
+}
