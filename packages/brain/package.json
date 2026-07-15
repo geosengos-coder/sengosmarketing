@@ -1,0 +1,30 @@
+{
+  "name": "@operatoros/brain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.0.6",
+    "@react-three/fiber": "^9.1.2",
+    "@react-three/postprocessing": "^3.0.4",
+    "three": "^0.171.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@operatoros/config": "workspace:*",
+    "@types/node": "^22.7.0",
+    "@types/react": "^19.0.0",
+    "@types/three": "^0.171.0",
+    "eslint": "^9.11.0",
+    "react": "^19.0.0",
+    "typescript": "^5.6.2"
+  }
+}

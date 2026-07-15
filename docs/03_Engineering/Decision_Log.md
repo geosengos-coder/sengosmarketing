@@ -225,6 +225,144 @@ frontend / backend        (thin: HTTP, React; no business logic)
 
 ---
 
+## ADR-0011 — Homepage live receptionist: simulated, behind the real VoiceProvider seam
+
+**Status:** Superseded by [ADR-0013](#adr-0013--the-live-voice-agent-is-real-openai--elevenlabs-behind-a-provider-abstraction) · 2026-07-12 — founder direction is a _real_ voice experience, not a simulation. The `VoiceProvider` seam and the scripted path are retained as the **fallback**, not the primary.
+
+**Context.** The homepage experience puts a "talk to an AI employee" demo on the most important page. A real speech-to-speech demo (OpenAI Realtime API) needs keys, a backend voice endpoint, per-visit cost, and carries latency/failure risk exactly where a first impression is made — and it front-loads Phase-4 infrastructure into Phase 1.
+
+**Decision.** Ship a **deterministic, cinematic `SimulatedVoiceProvider`** implementing the same `VoiceProvider` interface used by the real product (ADR-0002, ADR-0007). It drives the Business Brain live (bookings → pulse, new customer node, calendar/analytics updates) from a scripted conversation. The real `RealtimeVoiceProvider` drops in later with **no UI change**.
+
+**Alternatives considered.** _Wire the real Realtime API now_ — rejected for v1 (cost per visitor, latency, on-stage failure, backend scope). _Text-only demo_ — rejected; loses the "speak to an employee" wow central to the vision.
+
+**Consequences.** A stunning, reliable, free homepage demo now; a clean swap to real voice later. The simulation's script is content (data), not engine code.
+
+---
+
+## ADR-0012 — Polyglot rendering: the right renderer per responsibility
+
+**Status:** Accepted · 2026-07-12
+
+**Context.** "Intelligence coming to life" (particles, soft light, depth, camera motion, thousands of nodes at 60fps) exceeds what SVG/DOM animation can do, while product UI (nav, forms, tables, dashboard chrome) must stay fast, accessible, and maintainable. One renderer for everything is the wrong optimization.
+
+**Decision.** Match the renderer to the job:
+
+| Responsibility                                                              | Renderer                                                                |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Business Brain** (hero, dashboard, onboarding, analytics, loading)        | **React Three Fiber / WebGL** — a reusable engine (`@operatoros/brain`) |
+| **Product UI** (nav, cards, forms, dashboard, settings, pricing, tables)    | React + Tailwind + shadcn/ui                                            |
+| **Micro-animations** (transitions, hovers, modals, scroll reveals, loading) | Framer Motion                                                           |
+| **Icons, logos, simple diagrams**                                           | SVG                                                                     |
+
+The Business Brain is a **core product component**, not a hero animation — architected as its own engine and reused across every surface. Details: [Business Brain Rendering Architecture](../05_Design/Business_Brain_Rendering_Architecture.md).
+
+**Alternatives considered.** _Canvas 2D everywhere_ — rejected; caps depth/lighting and won't scale to thousands of nodes as elegantly. _SVG + Framer Motion_ — rejected for the brain; too flat. _WebGL for all UI_ — rejected; terrible for forms/tables, a11y, and maintainability.
+
+**Consequences.** Adds `three` + `@react-three/fiber` + `@react-three/drei` (+ postprocessing) — heavy, so the engine is a **lazy-loaded, code-split package** and the initial page stays light. WebGL demands an explicit non-WebGL fallback and `prefers-reduced-motion` path (both required, not optional). Front-end contributors work in two idioms (R3F for the brain, React/Tailwind for UI) — an intentional, documented boundary.
+
+---
+
+## ADR-0013 — The live voice agent is real (OpenAI + ElevenLabs behind a provider abstraction)
+
+**Status:** Accepted · 2026-07-12 (supersedes ADR-0011)
+
+**Context.** The homepage voice demo is the site's centerpiece. Founder direction: it must be a **real** conversation — the AI answers, speaks, books appointments, updates a CRM, creates tasks, and shows a live transcript — and it must **never feel broken**.
+
+**Decision.** Build it real, as a pipeline behind our `VoiceProvider` abstraction (ADR-0002):
+
+- **Reasoning/turn logic:** OpenAI Realtime API (low-latency conversation, tool calling for book/CRM/task actions).
+- **Voice (TTS):** **ElevenLabs by default** (best perceived quality); OpenAI's native voice is the alternative. The abstraction lets us A/B and swap.
+- **Runtime:** the long-running **voice-gateway** (ADR-0001) holds the browser↔model socket; the browser uses WebRTC/WebSocket mic streaming.
+- **Guardrails (non-negotiable):** hard per-visitor and per-day **cost caps**, a **session timeout** (~90s), **rate limiting** by IP, **abuse/prompt-injection** filtering, and a fixed **demo business context** (the AI plays a sandboxed sample business, not a real tenant).
+- **Seamless fallback:** if the API is slow/over budget or the visitor has no mic/denies permission, the experience **degrades invisibly** to a scripted, cinematic run that drives the same on-screen effects. Real when it can be; flawless always.
+
+**Alternatives considered.** _Simulated only (ADR-0011)_ — reversed by founder direction. _OpenAI native voice only_ — kept as fallback/alternative; ElevenLabs leads on quality. _Client-only (no backend)_ — rejected; keys and cost control must live server-side.
+
+**Consequences.** Real per-visit cost and ops surface (keys, budgets, abuse handling) — accepted deliberately. Requires OpenAI + ElevenLabs keys and a spend cap before go-live. Detailed design: [Voice Architecture](../04_AI/Voice_Architecture.md).
+
+---
+
+## ADR-0014 — The Website Blueprint is a real, personalized analysis
+
+**Status:** Accepted · 2026-07-12
+
+**Context.** The second interactive must produce a genuine "wow": the visitor enters their **website URL, business name, industry, and city**, and watches the AI generate a tailored website **blueprint** live.
+
+**Decision.** Make it real, not templated:
+
+1. **Ingest** the visitor's URL server-side (fetch + readability extraction; respect robots, timeouts, size caps).
+2. **Analyze** with an LLM: strengths, weaknesses, SEO gaps, and conversion opportunities, grounded in the fetched content + industry/city context.
+3. **Generate** a structured blueprint (page/section architecture with real headlines/copy for _their_ business) as typed data.
+4. **Render** it assembling live as an animated wireframe (DOM/Framer-Motion), section by section — a machine thinking on screen, not a template reveal.
+
+**Guardrails:** SSRF-safe fetching (allowlist schemes, block internal IPs), per-visitor rate limits and cost caps, caching by normalized URL, and a graceful fallback (industry/city-only generation) when a site can't be fetched.
+
+**Alternatives considered.** _Name/industry-only generation_ — kept as the fallback; real ingestion is the magic. _Fully client-side_ — rejected (fetching + keys must be server-side).
+
+**Consequences.** A server endpoint with careful SSRF/rate/cost controls; LLM cost per run (capped/cached). Delivers a genuinely personalized moment. Design lives with the flagship spec.
+
+---
+
+## ADR-0015 — Business DNA: the structured spec every AI Employee consumes
+
+**Status:** Accepted · 2026-07-12
+
+**Context.** An AI Employee's behavior must be defined by _data_, not by a hand-tuned prompt. That definition — identity, knowledge, communication, personality, policies, scheduling, tool permissions, escalation, industry behavior, integrations, customer experience, success metrics — is core IP and must serve **many** employee roles (receptionist, scheduler, sales agent, support, website experience), scale to thousands of businesses, and stay easy to configure.
+
+**Decision.** Build **Business DNA** — a versioned, validated, layered structured document that is the single source of truth for how an AI Employee behaves. It lives in a dedicated framework-free package `@operatoros/dna`. Key properties:
+
+- **Not a prompt.** The DNA is rich structured data across all twelve dimensions. A system prompt is just _one_ derived artifact; the DNA also drives tool allow-lists, policy guardrails, escalation config, scheduling behavior, and metric targets.
+- **Two layers.** A shared **business layer** (identity, knowledge, policies, scheduling, integrations, industry) + one or more **employee blueprints** (role-specific personality, communication, tools, escalation, CX, metrics). One business → many AI Employees.
+- **Composable defaults.** `IndustryTemplate ⊕ BusinessSignals ⊕ RoleTemplate ⊕ Overrides → resolved DNA`. Industry/role templates make a business configurable with minimal input; override only what's specific.
+- **Deterministic resolution + a runtime contract.** `resolve()` is pure and testable; `toRuntime(dna, role)` produces exactly what the orchestrator needs (prompt sections, tool allow-list, policies, escalation, scheduling, metrics).
+- **Provider-agnostic generation.** A `BusinessDNAGenerator` interface turns inputs (URL, name, industry, city) into `BusinessSignals` (incl. the strengths/weaknesses/SEO/conversion analysis of ADR-0014). A deterministic heuristic generator ships now; the LLM/website-analysis generator plugs in behind the same interface when keys land.
+
+**Alternatives considered.** _Prompt templates per business_ — rejected; unstructured, untestable, single-purpose, doesn't scale. _A giant JSON blob on the employee row_ — rejected; no layering, no validation, no reuse across roles.
+
+**Consequences.** A new package (`@operatoros/dna`, zod-validated, versioned). The `AIEmployeeConfiguration` will persist a resolved blueprint; the marketing personalization demo (Movement 3) renders a DNA being generated live; the AI orchestrator consumes the runtime contract. Full design: [Business DNA](../04_AI/Business_DNA.md). ADR-0014's website analysis becomes the generator's `analyze()` step.
+
+---
+
+## ADR-0016 — Business DNA generation: multi-source ingestion + LLM analysis behind the provider seam
+
+**Status:** Accepted · 2026-07-13
+
+**Context.** The `BusinessDNAGenerator` (ADR-0015) needs a real implementation that consumes website content, business metadata, documents, FAQs, reviews, and future integrations, and produces validated `BusinessSignals`. It runs server-side (keys, arbitrary URL fetching) and must never break the experience.
+
+**Decision.** Build it as a **pipeline in `@operatoros/ai`** (framework-free, ADR-0005): **collect → analyze → validate**, all behind the existing seam.
+
+- **LLM provider seam:** an `LLMProvider` interface (ADR-0002) with an `OpenAIProvider` adapter; `getLLMProvider()` returns null when no key, so callers never branch on availability.
+- **Collectors:** normalize every input into common evidence. A `WebsiteCollector` does an **SSRF-safe** fetch (http(s) only, internal/link-local hosts blocked, timeout, size cap, HTML→text). New sources (documents, reviews, a CRM export, an integration) are new collectors — the analyzer and DNA contract don't change.
+- **Analyzer:** one LLM call whose output is **parsed against `BusinessSignalsSchema`** (a malformed model response fails loudly and triggers fallback, never corrupting the DNA). Grounded-only prompt; concise arrays; confidence reflects evidence quality.
+- **Generator:** `LLMBusinessDNAGenerator` implements the seam and **degrades to the `HeuristicGenerator` on any failure**. `createBusinessDNAGenerator()` picks real-vs-heuristic automatically; `generateBusinessDNA(input, opts)` is the one call from inputs → validated `BusinessDNA`.
+- **Guardrails:** per-request token cap, JSON-validated output, fetch timeouts/size caps, and (to add) per-visitor rate + cost caps and caching by normalized URL in the API route.
+
+**Alternatives considered.** _Client-side generation_ — rejected; keys and fetching must be server-side. _Unvalidated LLM output straight into the DNA_ — rejected; the schema is the contract.
+
+**Consequences.** Adds the `openai` dependency and a server surface. Verified: typecheck clean, fallback path produces a valid DNA with no key. **Hardening follow-up (Risk Register):** the website fetch follows redirects, which can still reach an internal host — production needs per-hop IP validation or an egress proxy/allowlist. Design: [Business DNA](../04_AI/Business_DNA.md).
+
+---
+
+## ADR-0017 — Retell as the concrete VoiceProvider for the "Talk to Ava" experience
+
+**Status:** Accepted · 2026-07-14 (amends [ADR-0013](#adr-0013--the-live-voice-agent-is-real-openai--elevenlabs-behind-a-provider-abstraction); the `VoiceProvider` abstraction from ADR-0002/ADR-0007 is unchanged)
+
+**Context.** Sprint 3's goal is a complete, real AI Employee experience on the homepage: a visitor clicks "Talk to Ava" and has an actual conversation with a receptionist built entirely from the Business DNA just generated (Movement 3), including a real tool call that books a sample appointment and updates the UI live. ADR-0013 named OpenAI Realtime + ElevenLabs as the concrete pipeline; building and hosting that pipeline ourselves (turn-taking, barge-in, media bridging) is exactly the work ADR-0007 already decided to buy rather than build.
+
+**Decision.** Implement the concrete `VoiceProvider` for this milestone as **Retell** — a managed conversational-voice platform (LLM + TTS + telephony/WebRTC orchestration in one). Retell is invoked purely behind the existing `VoiceProvider` seam:
+
+- **DNA is the only knowledge source.** The Retell agent's prompt is `toRuntime(dna, role).systemPrompt` verbatim — generated entirely from the Business DNA the visitor just watched form. **No hand-written per-business prompt text exists anywhere in the voice code.**
+- **Tools are DNA-derived.** Only the tool keys present in the DNA's `toolAllowlist` are registered as callable functions; v1 implements execution for a demo-scoped subset (`book_appointment`, `check_availability`, `lookup_contact`, `take_message`) sufficient to prove the pattern. Retell calls our webhook to execute a tool mid-conversation.
+- **Ephemeral, not tenant data.** Because the homepage demo is for anonymous visitors exploring a business that may not exist as a tenant, the call session (DNA + Retell IDs + any "booked" appointments) lives in a short-TTL **in-memory** session store — never the multi-tenant Postgres/RLS path. This is explicitly a marketing-demo data path, not the product's booking system.
+- **Guardrails:** a session TTL, per-IP rate limiting on session creation, and a capped call duration are enforced server-side, consistent with ADR-0013's cost/abuse requirements.
+- **Honest unavailability, not a fake call.** If `RETELL_API_KEY` is not configured, the "Talk to Ava" flow shows a clear "voice engine not connected" state rather than a scripted/simulated conversation — the founder was explicit that this experience must be real, not faked. (This differs from the marketing hero's `SimulatedVoiceProvider`, ADR-0011, which remains the right call for that lower-stakes, always-on visual.)
+
+**Alternatives considered.** *Build the OpenAI Realtime + ElevenLabs pipeline directly (ADR-0013 as originally written)* — deferred; more infrastructure (our own media bridging) than the milestone needs, when a bought platform proves the "complete AI Employee" concept faster. *A scripted fallback conversation when no key is present* — rejected per explicit founder direction: no fake interactions for this centerpiece.
+
+**Consequences.** Adds `packages/voice` (the abstraction + `RetellVoiceProvider`) and a `RETELL_API_KEY` operational prerequisite, documented alongside the existing OpenAI/ElevenLabs prerequisites. Retell's concrete wire format (agent/LLM creation, web-call tokens, custom-function-call payloads) is isolated to a single adapter file so it can be swapped for a direct OpenAI+ElevenLabs pipeline later without touching the DNA-to-prompt mapping, the tool execution logic, or the UI. **Operational note:** Retell's servers must be able to reach our tool webhook over the public internet — a local dev server needs a tunnel (e.g. ngrok) for live tool calls to work; this is called out explicitly rather than silently degraded. Design: [Voice Employee Experience](../04_AI/Voice_Employee_Experience.md).
+
+---
+
 _Template for new entries:_
 
 ```

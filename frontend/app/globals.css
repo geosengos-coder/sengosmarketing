@@ -1,23 +1,30 @@
-/* Design tokens (canonical copy in @operatoros/ui/tokens.css). */
+/*
+ * Meridian tokens (Brand_Exploration → recommendation): warm bone paper, ink,
+ * racing-green accent, brass detail. HSL channels so Tailwind <alpha-value> works.
+ * The Business Brain lives on its own deep-ink stage; the editorial site is light.
+ */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-  --border: 214 32% 91%;
-  --primary: 243 75% 59%;
-  --primary-foreground: 0 0% 100%;
+  --background: 44 40% 96%; /* Bone */
+  --foreground: 48 19% 8%; /* Ink */
+  --muted: 44 30% 92%;
+  --muted-foreground: 60 5% 40%; /* Slate */
+  --border: 44 22% 86%;
+  --primary: 157 49% 14%; /* Racing green */
+  --primary-foreground: 44 40% 96%;
+  --brass: 39 46% 58%;
+  --ink: 48 19% 8%;
+  --stage: 45 22% 4%; /* Deep warm ink — the brain's stage */
   --radius: 0.5rem;
 }
 
 .dark {
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
-  --border: 217 33% 20%;
-  --primary: 243 75% 66%;
-  --primary-foreground: 0 0% 100%;
+  --background: 48 19% 6%;
+  --foreground: 44 40% 96%;
+  --muted: 48 12% 14%;
+  --muted-foreground: 44 12% 66%;
+  --border: 48 12% 18%;
+  --primary: 152 42% 42%;
+  --primary-foreground: 48 19% 6%;
 }
 
 @tailwind base;
@@ -25,5 +32,7 @@
 @tailwind utilities;
 
 body {
-  @apply bg-background text-foreground;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "ss01", "cv01";
 }

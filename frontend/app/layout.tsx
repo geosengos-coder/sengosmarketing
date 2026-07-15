@@ -1,18 +1,20 @@
 import type { ReactNode } from "react";
-import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 export const metadata = {
-  title: "OperatorOS",
-  description: "The operating system for AI Employees.",
+  title: "OperatorOS — The operating system for AI employees",
+  description:
+    "Connect your systems and OperatorOS learns your business — then answers the phone, books appointments, and follows through.",
 };
 
+/**
+ * Root layout: no auth. The marketing site is fully public and dependency-free.
+ * Clerk lives in the (app) and (auth) route groups only.
+ */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body>{children}</body>
+    </html>
   );
 }

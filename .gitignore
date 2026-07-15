@@ -26,3 +26,4 @@ npm-debug.log*
 # Turbo / caches
 .turbo/
 coverage/
+*.tsbuildinfo
