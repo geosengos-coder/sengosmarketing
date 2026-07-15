@@ -24,7 +24,7 @@ type ScopeGuc = { key: "app.tenant_id"; value: string } | { key: "app.bypass_rls
  * client-extension approach does not guarantee shared-connection semantics.
  */
 async function runScoped<T>(guc: ScopeGuc, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  return basePrisma.$transaction(async (tx) => {
+  return basePrisma.$transaction(async (tx: Tx) => {
     await tx.$executeRaw`SELECT set_config(${guc.key}, ${guc.value}, true)`;
     return fn(tx);
   });
