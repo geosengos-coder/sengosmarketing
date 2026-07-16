@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import type { BusinessDNA } from "@operatoros/dna";
+import type { RetellWebClient } from "retell-client-js-sdk";
 
 export type AvaCallStatus = "idle" | "connecting" | "unavailable" | "active" | "ended" | "error";
 
@@ -22,8 +23,7 @@ export function useAvaCall() {
   const [appointment, setAppointment] = useState<Record<string, unknown> | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- browser-only SDK type
-  const clientRef = useRef<any>(null);
+  const clientRef = useRef<RetellWebClient | null>(null);
   const esRef = useRef<EventSource | null>(null);
 
   const cleanup = useCallback(() => {
@@ -39,7 +39,6 @@ export function useAvaCall() {
       setAppointment(null);
       setErrorMessage(null);
 
-      let sessionId: string | undefined;
       try {
         const res = await fetch("/api/voice/session", {
           method: "POST",
@@ -62,8 +61,6 @@ export function useAvaCall() {
           sessionId: string;
           connection: { accessToken: string };
         };
-        sessionId = session.sessionId;
-
         const es = new EventSource(`/api/voice/events/${session.sessionId}`);
         es.onmessage = (evt) => {
           try {
