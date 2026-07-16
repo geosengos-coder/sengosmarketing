@@ -6,6 +6,7 @@
     "lint": { "dependsOn": ["^build"] },
     "typecheck": { "dependsOn": ["^build"] },
     "test": { "dependsOn": ["^build"] },
-    "generate": { "cache": false }
+    "generate": { "cache": false },
+    "@operatoros/database#build": { "cache": false, "outputs": [] }
   }
 }
