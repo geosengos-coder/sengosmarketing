@@ -16,20 +16,58 @@ export interface TranscriptTurn {
  * builds the Retell agent entirely from the Business DNA), connects the browser
  * mic via Retell's Web Client SDK, and listens for tool-driven UI events (e.g. the
  * booked appointment) over SSE. No scripted/simulated path — see ADR-0017.
+ *
+ * Beyond the raw call it surfaces the fine-grained signals the voice orb needs:
+ * `agentTalking` (from Retell's talking events) and a live, per-frame audio
+ * `amplitudeRef` (from the SDK's playback analyser) so the "speaking" visual is
+ * synced to the real agent audio rather than a simulated waveform. The Retell
+ * connection, mic capture, and permissions are untouched.
  */
 export function useAvaCall() {
   const [status, setStatus] = useState<AvaCallStatus>("idle");
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
   const [appointment, setAppointment] = useState<Record<string, unknown> | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [agentTalking, setAgentTalking] = useState(false);
+  const [muted, setMuted] = useState(false);
 
   const clientRef = useRef<RetellWebClient | null>(null);
   const esRef = useRef<EventSource | null>(null);
+  /** Smoothed live output level (0..1) of the agent's voice; read per-frame by the orb. */
+  const amplitudeRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
 
   const cleanup = useCallback(() => {
     esRef.current?.close();
     esRef.current = null;
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    amplitudeRef.current = 0;
+    setAgentTalking(false);
+    setMuted(false);
     clientRef.current = null;
+  }, []);
+
+  /** Poll the SDK's analyser each frame → a normalized, smoothed amplitude for the orb. */
+  const runAmplitudeLoop = useCallback(() => {
+    const tick = () => {
+      let level = 0;
+      try {
+        const raw = clientRef.current?.analyzerComponent?.calculateVolume?.();
+        if (typeof raw === "number" && Number.isFinite(raw)) {
+          // calculateVolume returns a small RMS-ish figure; normalize defensively so
+          // the visual is stable regardless of the SDK's exact scale.
+          level = raw > 1 ? Math.min(1, raw / 100) : Math.max(0, raw);
+        }
+      } catch {
+        // analyser not ready yet (pre-playback) — decay toward silence.
+      }
+      // Attack fast, release slow: feels like a real voice meter.
+      const prev = amplitudeRef.current;
+      amplitudeRef.current = level > prev ? level : prev * 0.85 + level * 0.15;
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
   }, []);
 
   const start = useCallback(
@@ -38,6 +76,8 @@ export function useAvaCall() {
       setTranscript([]);
       setAppointment(null);
       setErrorMessage(null);
+      setAgentTalking(false);
+      setMuted(false);
 
       try {
         const res = await fetch("/api/voice/session", {
@@ -77,10 +117,20 @@ export function useAvaCall() {
         clientRef.current = client;
 
         client.on("call_started", () => setStatus("active"));
-        client.on("call_ended", () => setStatus("ended"));
+        client.on("call_ended", () => {
+          setAgentTalking(false);
+          amplitudeRef.current = 0;
+          setStatus("ended");
+        });
         client.on("error", () => {
           setStatus("error");
           setErrorMessage("The call disconnected unexpectedly.");
+        });
+        // Talking events drive the orb's speaking↔listening transitions.
+        client.on("agent_start_talking", () => setAgentTalking(true));
+        client.on("agent_stop_talking", () => {
+          setAgentTalking(false);
+          amplitudeRef.current = 0;
         });
         client.on("update", (update: { transcript?: { role: string; content: string }[] }) => {
           if (update.transcript) {
@@ -94,12 +144,13 @@ export function useAvaCall() {
         });
 
         await client.startCall({ accessToken: session.connection.accessToken });
+        runAmplitudeLoop();
       } catch (err) {
         setStatus("error");
         setErrorMessage(err instanceof Error ? err.message : "Microphone or connection unavailable.");
       }
     },
-    [],
+    [runAmplitudeLoop],
   );
 
   const stop = useCallback(() => {
@@ -111,5 +162,28 @@ export function useAvaCall() {
     }
   }, [cleanup]);
 
-  return { status, transcript, appointment, errorMessage, start, stop };
+  /** Toggle the caller's microphone. Wraps the SDK's mute/unmute; connection untouched. */
+  const toggleMute = useCallback(() => {
+    const client = clientRef.current;
+    if (!client) return;
+    setMuted((m) => {
+      const next = !m;
+      if (next) client.mute();
+      else client.unmute();
+      return next;
+    });
+  }, []);
+
+  return {
+    status,
+    transcript,
+    appointment,
+    errorMessage,
+    agentTalking,
+    amplitudeRef,
+    muted,
+    start,
+    stop,
+    toggleMute,
+  };
 }
