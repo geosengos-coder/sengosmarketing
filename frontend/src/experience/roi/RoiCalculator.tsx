@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Reveal } from "../shared/Reveal";
+import { Aurora } from "../shared/Aurora";
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -29,7 +30,7 @@ function Slider({
   return (
     <label className="block">
       <div className="flex items-baseline justify-between">
-        <span className="text-sm text-muted-foreground">{label}</span>
+        <span className="text-sm text-background/60">{label}</span>
         <span className="font-sans text-lg font-medium">{format(value)}</span>
       </div>
       <input
@@ -39,7 +40,7 @@ function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-3 w-full accent-primary"
+        className="mt-3 w-full accent-[#38BDF8]"
       />
     </label>
   );
@@ -53,10 +54,18 @@ export function RoiCalculator() {
   const recovered = Math.round(missedCalls * jobValue * (closeRate / 100));
 
   return (
-    <section id="roi" className="w-full bg-stage px-6 py-28 text-background sm:px-10">
-      <div className="mx-auto max-w-4xl">
+    <section
+      id="roi"
+      className="relative w-full overflow-hidden bg-stage px-6 py-28 text-background sm:px-10"
+    >
+      <Aurora className="absolute inset-0" colors={["#A855F7", "#38BDF8", "#F472B6"]} opacity={0.14} />
+      <div className="relative z-10 mx-auto max-w-4xl">
         <Reveal className="text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-brass">Missed calls, priced</p>
+          <p className="text-xs uppercase tracking-[0.3em]">
+            <span className="bg-gradient-to-r from-[#38BDF8] to-[#A855F7] bg-clip-text text-transparent">
+              Missed calls, priced
+            </span>
+          </p>
           <h2 className="mt-3 font-sans text-3xl font-medium tracking-[-0.02em] sm:text-5xl">
             What are missed calls costing you?
           </h2>
@@ -66,7 +75,7 @@ export function RoiCalculator() {
         </Reveal>
 
         <Reveal delay={0.1} className="mt-14 grid grid-cols-1 gap-10 sm:grid-cols-2">
-          <div className="space-y-8 rounded-2xl border border-background/12 bg-background/[0.03] p-6 backdrop-blur-sm">
+          <div className="space-y-8 rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm">
             <Slider
               label="Missed calls per month"
               value={missedCalls}
@@ -96,9 +105,9 @@ export function RoiCalculator() {
             />
           </div>
 
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-background/12 bg-background/[0.03] p-6 text-center backdrop-blur-sm">
-            <p className="text-xs uppercase tracking-[0.2em] text-brass">Estimated revenue recovered</p>
-            <p className="mt-3 font-sans text-5xl font-medium tracking-[-0.02em]">
+          <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-[#38BDF8]/25 bg-gradient-to-b from-[#38BDF8]/[0.10] to-transparent p-6 text-center backdrop-blur-sm shadow-[0_0_50px_-16px_rgba(56,189,248,0.6)]">
+            <p className="text-xs uppercase tracking-[0.2em] text-[#7DD3FC]">Estimated revenue recovered</p>
+            <p className="mt-3 bg-gradient-to-br from-white via-[#C6D4FF] to-[#B368E8] bg-clip-text font-sans text-5xl font-medium tracking-[-0.02em] text-transparent">
               {currency.format(recovered)}
             </p>
             <p className="mt-2 text-sm text-background/50">per month</p>

@@ -2,6 +2,7 @@
 
 import { IndustrySchema, type Industry } from "@operatoros/dna";
 import { Reveal } from "../shared/Reveal";
+import { Aurora } from "../shared/Aurora";
 import { selectedIndustry } from "../dna/selectedIndustry";
 
 const LABELS: Partial<Record<Industry, { name: string; blurb: string }>> = {
@@ -31,15 +32,23 @@ function selectIndustry(industry: Industry) {
 
 export function Industries() {
   return (
-    <section id="industries" className="w-full bg-background px-6 py-28 text-foreground sm:px-10">
-      <div className="mx-auto max-w-5xl text-center">
+    <section
+      id="industries"
+      className="relative w-full overflow-hidden bg-stage px-6 py-28 text-background sm:px-10"
+    >
+      <Aurora className="absolute inset-0" opacity={0.13} />
+      <div className="relative z-10 mx-auto max-w-5xl text-center">
         <Reveal>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Every industry</p>
+          <p className="text-xs uppercase tracking-[0.3em]">
+            <span className="bg-gradient-to-r from-[#38BDF8] to-[#A855F7] bg-clip-text text-transparent">
+              Every industry
+            </span>
+          </p>
           <h2 className="mt-3 font-sans text-3xl font-medium tracking-[-0.02em] sm:text-5xl">
             Built for your business, specifically
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-muted-foreground">
-            Pick your industry and OperatorOS pre-loads the vocabulary, compliance, and scheduling
+          <p className="mx-auto mt-4 max-w-lg text-background/60">
+            Pick your industry and SDS pre-loads the vocabulary, compliance, and scheduling
             behavior it needs — then learns the rest from your business.
           </p>
         </Reveal>
@@ -51,15 +60,15 @@ export function Industries() {
               <Reveal key={industry} delay={Math.min(i * 0.04, 0.3)}>
                 <button
                   onClick={() => selectIndustry(industry)}
-                  className="group flex w-full items-center justify-between rounded-2xl border border-border bg-muted/40 px-5 py-5 text-left transition hover:border-primary/40 hover:bg-muted"
+                  className="group flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-5 text-left backdrop-blur-sm transition hover:border-[#38BDF8]/40 hover:bg-white/[0.07] hover:shadow-[0_0_34px_-12px_rgba(56,189,248,0.6)]"
                 >
                   <span>
                     <span className="block font-sans text-base font-medium">{label.name}</span>
-                    <span className="mt-1 block text-sm text-muted-foreground">{label.blurb}</span>
+                    <span className="mt-1 block text-sm text-background/55">{label.blurb}</span>
                   </span>
                   <span
                     aria-hidden
-                    className="ml-3 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary"
+                    className="ml-3 shrink-0 text-background/40 transition group-hover:translate-x-0.5 group-hover:text-[#38BDF8]"
                   >
                     →
                   </span>

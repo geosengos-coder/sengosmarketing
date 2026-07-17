@@ -4,6 +4,8 @@ import { useRef } from "react";
 import dynamic from "next/dynamic";
 import { useBrainProgress } from "@operatoros/brain";
 import { useScrollProgress } from "./useScrollProgress";
+import { SdsLogo } from "../shared/SdsLogo";
+import { Aurora } from "../shared/Aurora";
 
 const BusinessBrain = dynamic(() => import("@operatoros/brain").then((m) => m.BusinessBrain), {
   ssr: false,
@@ -35,11 +37,11 @@ function JourneyCopy() {
         className="absolute inset-x-0 top-0 flex flex-col items-center px-6 pt-[15vh] text-center"
         style={{ opacity: introOpacity }}
       >
-        <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-background/15 bg-background/[0.04] px-3.5 py-1.5 text-xs text-background/70 backdrop-blur-sm">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#7BE3B0] shadow-[0_0_10px_#7BE3B0]" />
+        <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-3.5 py-1.5 text-xs text-background/80 shadow-[0_0_30px_-8px_rgba(56,189,248,0.6)] backdrop-blur-md">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_10px_#22D3EE]" />
           An AI employee, learning your business in real time
         </div>
-        <h1 className="max-w-4xl text-balance text-[2.6rem] font-medium leading-[1.03] tracking-[-0.03em] sm:text-6xl md:text-7xl">
+        <h1 className="max-w-4xl text-balance bg-gradient-to-br from-white via-[#C6D4FF] to-[#B368E8] bg-clip-text text-[2.6rem] font-medium leading-[1.03] tracking-[-0.03em] text-transparent sm:text-6xl md:text-7xl">
           The operating system for AI employees
         </h1>
         <p className="mt-7 max-w-lg text-pretty text-base leading-relaxed text-background/60 sm:text-lg">
@@ -49,7 +51,7 @@ function JourneyCopy() {
         <div className="pointer-events-auto mt-10 flex items-center gap-5">
           <a
             href="#dna-experience"
-            className="rounded-full bg-background px-6 py-3 text-sm font-medium text-stage shadow-[0_0_40px_-8px_rgba(255,255,255,0.35)] transition hover:opacity-90"
+            className="rounded-full bg-gradient-to-r from-[#38BDF8] via-[#6D8BFF] to-[#A855F7] px-6 py-3 text-sm font-semibold text-white shadow-[0_0_44px_-6px_rgba(120,120,255,0.75)] transition hover:brightness-110"
           >
             Meet your AI employee
           </a>
@@ -79,7 +81,7 @@ function JourneyCopy() {
         className="absolute inset-x-0 top-0 flex flex-col items-center px-6 pt-[13vh] text-center"
         style={{ opacity: wakeOpacity }}
       >
-        <h2 className="max-w-3xl text-3xl font-medium leading-[1.05] tracking-[-0.02em] sm:text-5xl">
+        <h2 className="max-w-3xl bg-gradient-to-br from-white via-[#C6D4FF] to-[#B368E8] bg-clip-text text-3xl font-medium leading-[1.05] tracking-[-0.02em] text-transparent sm:text-5xl">
           Your AI Operating System is awake.
         </h2>
         <p className="mt-5 max-w-md text-base text-background/60 sm:text-lg">
@@ -88,7 +90,7 @@ function JourneyCopy() {
         <div className="pointer-events-auto mt-9">
           <a
             href="#dna-experience"
-            className="rounded-full bg-background px-6 py-3 text-sm font-medium text-stage shadow-[0_0_50px_-8px_rgba(255,255,255,0.45)] transition hover:opacity-90"
+            className="rounded-full bg-gradient-to-r from-[#38BDF8] via-[#6D8BFF] to-[#A855F7] px-6 py-3 text-sm font-semibold text-white shadow-[0_0_50px_-6px_rgba(120,120,255,0.8)] transition hover:brightness-110"
           >
             Talk to your AI employee
           </a>
@@ -110,6 +112,9 @@ export function Journey() {
           <BusinessBrain variant="hero" />
         </div>
 
+        {/* Aurora — futuristic color energy drifting over the stage. */}
+        <Aurora className="absolute inset-0 z-[1]" opacity={0.32} />
+
         {/* Cinematic scrims for legibility. */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-2/5"
@@ -124,7 +129,7 @@ export function Journey() {
 
         {/* Nav */}
         <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 py-5 sm:px-10">
-          <span className="text-[15px] font-semibold tracking-tight">OperatorOS</span>
+          <SdsLogo size={26} className="text-[15px]" />
           <nav className="hidden items-center gap-9 text-sm text-background/55 md:flex">
             {navLinks.map((l) => (
               <a key={l.label} href={l.href} className="transition-colors hover:text-background">

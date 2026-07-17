@@ -111,7 +111,7 @@ export async function fetchWebsite(rawUrl: string, opts: FetchOptions = {}): Pro
     const res = await fetch(url, {
       signal: controller.signal,
       redirect: "follow",
-      headers: { "user-agent": "OperatorOS-DNA/1.0 (+https://operatoros.ai)" },
+      headers: { "user-agent": "SDS-DNA/1.0" },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const contentType = res.headers.get("content-type") ?? "";

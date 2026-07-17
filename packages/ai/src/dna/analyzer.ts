@@ -10,7 +10,7 @@ import type { CollectedSource } from "./sources";
 const INDUSTRIES = IndustrySchema.options.join(", ");
 const MAX_CORPUS_CHARS = 24_000;
 
-const SYSTEM = `You are OperatorOS's Business DNA analyst. From the supplied evidence about a business, produce a precise, grounded understanding of it.
+const SYSTEM = `You are Sengos Digital Systems's Business DNA analyst. From the supplied evidence about a business, produce a precise, grounded understanding of it.
 
 Output ONLY a JSON object with exactly these fields:
 {

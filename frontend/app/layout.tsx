@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata = {
-  title: "OperatorOS — The operating system for AI employees",
+  title: "Sengos Digital Systems — The operating system for AI employees",
   description:
-    "Connect your systems and OperatorOS learns your business — then answers the phone, books appointments, and follows through.",
+    "Connect your systems and Sengos Digital Systems learns your business — then answers the phone, books appointments, and follows through.",
 };
 
 /**

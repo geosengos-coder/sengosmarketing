@@ -1,5 +1,5 @@
 /*
- * OperatorOS design tokens (canonical). The frontend inlines these into
+ * Sengos Digital Systems design tokens (canonical). The frontend inlines these into
  * app/globals.css so Tailwind picks them up; per-tenant white-labeling later
  * overrides these variables. HSL channels (no hsl()) so Tailwind's <alpha-value>
  * can apply opacity.
