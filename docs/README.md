@@ -4,6 +4,8 @@ This is the **permanent source of truth** for OperatorOS. It is written so that 
 
 If code and docs disagree, that is a bug. Fix the docs in the same change that changes the behavior.
 
+> **Current deploy scope:** the deployed app is presently a **Phase 1** marketing/demo site with no auth, database, or dashboard at runtime. The platform architecture described throughout these docs (multi-tenant Postgres/RLS, Clerk, the dashboard) is the **Phase 2** target; its code is parked, not deleted, under [`/platform`](../platform/README.md).
+
 ## Sections
 
 | #   | Section                            | What it answers                                                 |

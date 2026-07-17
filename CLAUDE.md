@@ -4,6 +4,8 @@ This is the permanent operating manual for the OperatorOS repository. Every Clau
 
 > **Companion docs:** the full source of truth lives in [`docs/`](docs/). This file is the compass; `docs/` is the map. Key anchors: [Vision](docs/01_Founder_Bible/Vision.md), [Roadmap](docs/01_Founder_Bible/Roadmap.md), [Architecture](docs/03_Engineering/Architecture.md), [Decision Log](docs/03_Engineering/Decision_Log.md).
 
+> **Current deploy scope:** what's actually running (`frontend/`, `packages/*`) is a **Phase 1 marketing/demo site** — no auth, no database, no dashboard, no backend infrastructure required. Everything below describes the **Phase 2** multi-tenant SaaS platform this is building toward; its code is preserved, untouched, under [`platform/`](platform/README.md), parked out of the build until Phase 2 resumes.
+
 ---
 
 ## Vision

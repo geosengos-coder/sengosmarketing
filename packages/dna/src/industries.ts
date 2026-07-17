@@ -110,6 +110,39 @@ export const INDUSTRY_TEMPLATES: Record<Industry, IndustryTemplate> = {
       { name: "Color", durationMinutes: 120, bufferMinutes: 15 },
     ],
   },
+  hvac: {
+    vocabulary: ["furnace", "AC unit", "thermostat", "tune-up", "no heat", "no cool", "emergency"],
+    commonIntents: ["book_service", "request_estimate", "emergency_dispatch", "ask_maintenance_plan"],
+    rules: [
+      "Treat no-heat/no-cool calls as urgent — offer the soonest dispatch or escalate.",
+      "Give price ranges only from business data; otherwise schedule a diagnostic visit.",
+    ],
+    compliance: ["TCPA"],
+    prohibitedTopics: [],
+    brandTone: ["friendly", "dependable", "straightforward"],
+    formality: 0.4,
+    defaultAppointmentTypes: [
+      { name: "Diagnostic visit", durationMinutes: 60, bufferMinutes: 30 },
+      { name: "Emergency dispatch", durationMinutes: 60, bufferMinutes: 30 },
+      { name: "Seasonal tune-up", durationMinutes: 45, bufferMinutes: 15 },
+    ],
+  },
+  med_spa: {
+    vocabulary: ["treatment", "injectable", "laser", "membership", "consultation", "provider"],
+    commonIntents: ["book_appointment", "ask_services", "ask_pricing", "ask_provider"],
+    rules: [
+      "Never give clinical or medical advice — offer a consultation with a licensed provider.",
+      "Confirm treatment, provider, and price only from business data.",
+    ],
+    compliance: ["HIPAA", "TCPA"],
+    prohibitedTopics: ["clinical diagnosis", "treatment guarantees"],
+    brandTone: ["warm", "upscale", "reassuring"],
+    formality: 0.5,
+    defaultAppointmentTypes: [
+      { name: "Consultation", durationMinutes: 30, bufferMinutes: 10 },
+      { name: "Treatment", durationMinutes: 60, bufferMinutes: 15 },
+    ],
+  },
   restaurant: {
     vocabulary: ["reservation", "party size", "waitlist", "catering", "private event"],
     commonIntents: ["make_reservation", "ask_hours", "catering_inquiry", "ask_menu"],
@@ -139,6 +172,22 @@ export const INDUSTRY_TEMPLATES: Record<Industry, IndustryTemplate> = {
     brandTone: ["energetic", "encouraging", "friendly"],
     formality: 0.3,
     defaultAppointmentTypes: [{ name: "Intro session", durationMinutes: 45, bufferMinutes: 10 }],
+  },
+  golf_course: {
+    vocabulary: ["tee time", "round", "member", "guest", "cart", "outing", "pro shop"],
+    commonIntents: ["book_tee_time", "ask_rates", "book_outing", "ask_membership"],
+    rules: [
+      "Confirm party size, date, and time for tee times; escalate outings and tournaments.",
+      "Give rates and membership details only from business data.",
+    ],
+    compliance: ["TCPA"],
+    prohibitedTopics: [],
+    brandTone: ["polished", "welcoming", "relaxed"],
+    formality: 0.45,
+    defaultAppointmentTypes: [
+      { name: "Tee time", durationMinutes: 15, bufferMinutes: 0 },
+      { name: "Outing inquiry", durationMinutes: 30, bufferMinutes: 10 },
+    ],
   },
   automotive: {
     vocabulary: ["estimate", "service", "diagnostic", "parts", "loaner"],

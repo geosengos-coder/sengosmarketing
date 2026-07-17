@@ -13,11 +13,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md,json,mjs}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,mjs}\"",
-    "db:generate": "pnpm --filter @operatoros/database generate",
-    "db:migrate": "pnpm --filter @operatoros/database migrate",
-    "db:seed": "pnpm --filter @operatoros/database seed",
-    "db:validate": "pnpm --filter @operatoros/database validate"
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,mjs}\""
   },
   "devDependencies": {
     "@operatoros/config": "workspace:*",

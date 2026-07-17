@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { brainFocus, brainProgress } from "@operatoros/brain";
 import { IndustrySchema, type BusinessDNA } from "@operatoros/dna";
 import { useDnaStream } from "./useDnaStream";
+import { useSelectedIndustry } from "./selectedIndustry";
 import { AvaCall } from "../voice/AvaCall";
 
 const BusinessBrain = dynamic(() => import("@operatoros/brain").then((m) => m.BusinessBrain), {
@@ -32,6 +33,16 @@ export function DnaExperience() {
   const sectionRef = useRef<HTMLElement>(null);
   const [inView, setInView] = useState(false);
   const [callOpen, setCallOpen] = useState(false);
+  const picked = useSelectedIndustry();
+
+  // The Industries section sets this when a visitor clicks a vertical card —
+  // pre-fill the intake form with it (only while idle, so it never clobbers an
+  // in-flight or completed generation).
+  useEffect(() => {
+    if (picked && status === "idle") {
+      setForm((f) => (f.industry === picked ? f : { ...f, industry: picked }));
+    }
+  }, [picked, status]);
 
   const latest = events[events.length - 1];
   const dna = useMemo(() => events.find((e) => e.stage === "complete")?.dna, [events]);
@@ -82,6 +93,7 @@ export function DnaExperience() {
 
   return (
     <section
+      id="dna-experience"
       ref={sectionRef}
       className="relative min-h-[100svh] w-full overflow-hidden bg-stage text-background"
     >
@@ -270,7 +282,11 @@ function DnaReveal({
 }) {
   const b = dna.business;
   const emp = dna.employees[0];
-  const pct = Math.round((confidence ?? dna.meta.confidence ?? 0) * 100);
+  // Reframe raw confidence (evidence gathered) as employee readiness. Even the
+  // baseline heuristic yields an employee that can answer calls today; more input
+  // just enriches what it knows — so we never show a discouraging low percentage.
+  const c = confidence ?? dna.meta.confidence ?? 0;
+  const readiness = c >= 0.7 ? "Comprehensive" : c >= 0.5 ? "Strong" : "Ready";
 
   return (
     <motion.div
@@ -285,7 +301,7 @@ function DnaReveal({
           {b.identity.displayName}
         </h2>
         <p className="mt-2 text-background/55">
-          Confidence {pct}% · {b.identity.industry.replace(/_/g, " ")}
+          Ready to answer calls · {b.identity.industry.replace(/_/g, " ")}
           {b.identity.city ? ` · ${b.identity.city}` : ""}
         </p>
       </div>
@@ -320,7 +336,7 @@ function DnaReveal({
               .map((a) => `${a.name} (${a.durationMinutes}m)`)
               .join(", ") || "—"}
           </Field>
-          <Field label="Confidence Score">{pct}%</Field>
+          <Field label="Knowledge Depth">{readiness}</Field>
         </div>
       </div>
 

@@ -17,6 +17,23 @@ export interface ResolveOptions {
 
 const unique = (xs: string[]) => [...new Set(xs)];
 
+/**
+ * Coerce visitor-entered website text into a valid URL. Most people type a bare
+ * domain ("acme.com"), which would fail the DNA's `url()` validation and abort the
+ * whole generation — so we prepend a protocol and, if it still can't parse, drop
+ * it rather than let one soft field break an otherwise-good Business DNA.
+ */
+function normalizeWebsite(raw?: string): string | undefined {
+  const trimmed = raw?.trim();
+  if (!trimmed) return undefined;
+  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  try {
+    return new URL(candidate).toString();
+  } catch {
+    return undefined;
+  }
+}
+
 function buildEmployee(
   role: EmployeeRole,
   signals: BusinessSignals,
@@ -64,7 +81,7 @@ export function resolveBusinessDNA(signals: BusinessSignals, opts: ResolveOption
       tagline: signals.tagline,
       description: signals.description,
       valueProps: signals.valueProps,
-      website: signals.website,
+      website: normalizeWebsite(signals.website),
       city: signals.city,
     },
     knowledge: {

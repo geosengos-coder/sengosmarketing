@@ -11,9 +11,9 @@ const BusinessBrain = dynamic(() => import("@operatoros/brain").then((m) => m.Bu
 });
 
 const navLinks = [
-  { label: "Product", href: "#" },
-  { label: "AI Employees", href: "#" },
-  { label: "Pricing", href: "#" },
+  { label: "Product", href: "#features" },
+  { label: "Industries", href: "#industries" },
+  { label: "Pricing", href: "#pricing" },
 ];
 
 function smoothstep(a: number, b: number, x: number) {
@@ -48,12 +48,15 @@ function JourneyCopy() {
         </p>
         <div className="pointer-events-auto mt-10 flex items-center gap-5">
           <a
-            href="#"
+            href="#dna-experience"
             className="rounded-full bg-background px-6 py-3 text-sm font-medium text-stage shadow-[0_0_40px_-8px_rgba(255,255,255,0.35)] transition hover:opacity-90"
           >
             Meet your AI employee
           </a>
-          <a href="#" className="text-sm text-background/70 transition-colors hover:text-background">
+          <a
+            href="#dna-experience"
+            className="text-sm text-background/70 transition-colors hover:text-background"
+          >
             See it live&nbsp;→
           </a>
         </div>
@@ -84,7 +87,7 @@ function JourneyCopy() {
         </p>
         <div className="pointer-events-auto mt-9">
           <a
-            href="#"
+            href="#dna-experience"
             className="rounded-full bg-background px-6 py-3 text-sm font-medium text-stage shadow-[0_0_50px_-8px_rgba(255,255,255,0.45)] transition hover:opacity-90"
           >
             Talk to your AI employee
@@ -130,7 +133,7 @@ export function Journey() {
             ))}
           </nav>
           <a
-            href="#"
+            href="#dna-experience"
             className="rounded-full border border-background/20 px-4 py-1.5 text-sm text-background transition-colors hover:bg-background/10"
           >
             Get access
