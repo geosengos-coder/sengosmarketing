@@ -28,7 +28,7 @@ export function StaticBrain({ config }: { config: BrainConfig }) {
         if (!a || !b) return null;
         const [ax, ay] = project(a.position);
         const [bx, by] = project(b.position);
-        return <line key={e.id} x1={ax} y1={ay} x2={bx} y2={by} stroke="#C6A867" strokeOpacity={0.22} />;
+        return <line key={e.id} x1={ax} y1={ay} x2={bx} y2={by} stroke="#6D8BFF" strokeOpacity={0.22} />;
       })}
       {config.nodes.map((n) => {
         const [x, y] = project(n.position);

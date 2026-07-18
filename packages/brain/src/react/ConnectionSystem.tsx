@@ -21,7 +21,7 @@ export function ConnectionSystem({ nodes, edges }: { nodes: BrainNode[]; edges: 
           <Line
             key={e.id}
             points={[a.position, b.position]}
-            color="#C6A867"
+            color="#6D8BFF"
             transparent
             opacity={0.14 * reveal}
             lineWidth={1}

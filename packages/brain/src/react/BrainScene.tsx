@@ -34,9 +34,9 @@ export function BrainScene({ config }: { config: BrainConfig }) {
       <fog attach="fog" args={[STAGE_BACKGROUND, 10, 24]} />
 
       <ambientLight intensity={0.3} />
-      <pointLight position={[0, 0, 1]} intensity={3} distance={18} color="#EAF6EE" />
-      <pointLight position={[6, 4, 6]} intensity={0.7} color="#C6A867" />
-      <pointLight position={[-6, -3, 4]} intensity={0.4} color="#7BA894" />
+      <pointLight position={[0, 0, 1]} intensity={3} distance={18} color="#EAF0FF" />
+      <pointLight position={[6, 4, 6]} intensity={0.7} color="#6D8BFF" />
+      <pointLight position={[-6, -3, 4]} intensity={0.4} color="#22D3EE" />
 
       <Suspense fallback={null}>
         <ConnectionSystem nodes={config.nodes} edges={config.edges} />
@@ -44,7 +44,7 @@ export function BrainScene({ config }: { config: BrainConfig }) {
         <NodeSystem nodes={config.nodes} />
         <NodeLabels nodes={config.nodes} />
         <StatusStream nodes={config.nodes} />
-        <Sparkles count={90} scale={[18, 12, 10]} size={1.4} speed={0.14} opacity={0.28} color="#E7DEC9" />
+        <Sparkles count={90} scale={[18, 12, 10]} size={1.4} speed={0.14} opacity={0.28} color="#C6D4FF" />
       </Suspense>
 
       <CameraRig />

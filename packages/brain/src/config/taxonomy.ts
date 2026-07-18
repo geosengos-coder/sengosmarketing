@@ -1,14 +1,15 @@
 import type { NodeFamily } from "../store/types";
 
 /**
- * Family colors — warm, premium, luminous-on-ink (Meridian identity). Not neon.
- * Systems read as brass, knowledge as warm bone, activity as sage, the core as light.
+ * Family colors — cool, iridescent, luminous-on-ink (SDS identity). Matches the
+ * site's cyan/violet aesthetic and the Siri voice orb: systems read as electric
+ * blue, knowledge as violet, activity as cyan, the core as a cool luminous white.
  */
 export const FAMILY_COLOR: Record<NodeFamily, string> = {
-  system: "#C6A867", // brass
-  knowledge: "#E7DEC9", // warm bone
-  activity: "#7BA894", // sage green
-  intelligence: "#EAF6EE", // luminous core
+  system: "#5B8CFF", // electric blue
+  knowledge: "#A99BFF", // violet
+  activity: "#22D3EE", // cyan
+  intelligence: "#E8ECFF", // cool luminous core
 };
 
 export const FAMILY_RADIUS: Record<NodeFamily, number> = {

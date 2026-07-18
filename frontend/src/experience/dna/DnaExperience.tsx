@@ -115,8 +115,18 @@ export function DnaExperience() {
         }}
         aria-hidden
       />
+      {/* Central readability scrim: darkens the middle where the copy sits so it
+          stays legible over the bright brain core, while the outer nodes show through. */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[2]"
+        style={{
+          background:
+            "radial-gradient(72% 50% at 50% 50%, hsl(var(--stage) / 0.88) 0%, hsl(var(--stage) / 0.6) 42%, transparent 76%)",
+        }}
+        aria-hidden
+      />
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-5xl flex-col items-center justify-center px-6 py-20">
+      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-5xl flex-col items-center justify-center px-6 py-20 [text-shadow:0_1px_18px_rgba(0,0,0,0.55)]">
         <AnimatePresence mode="wait">
           {status === "idle" && (
             <motion.div
@@ -127,8 +137,10 @@ export function DnaExperience() {
               transition={{ duration: 0.6, ease }}
               className="w-full max-w-xl text-center"
             >
-              <p className="mb-3 text-xs uppercase tracking-[0.3em] text-brass">
-                Before it answers a single call
+              <p className="mb-3 text-xs uppercase tracking-[0.3em]">
+                <span className="bg-gradient-to-r from-[#38BDF8] to-[#A855F7] bg-clip-text text-transparent">
+                  Before it answers a single call
+                </span>
               </p>
               <h2 className="font-sans text-3xl font-medium leading-tight tracking-[-0.02em] sm:text-5xl">
                 Watch your AI learn your business
@@ -138,7 +150,7 @@ export function DnaExperience() {
                 live.
               </p>
 
-              <div className="mt-9 rounded-2xl border border-background/12 bg-background/[0.03] p-3 backdrop-blur-sm">
+              <div className="mt-9 rounded-2xl border border-white/10 bg-white/[0.05] p-3 shadow-[0_0_60px_-20px_rgba(56,189,248,0.5)] backdrop-blur-md">
                 <input
                   value={form.websiteUrl}
                   onChange={(e) => setForm({ ...form, websiteUrl: e.target.value })}
@@ -151,12 +163,12 @@ export function DnaExperience() {
                     value={form.businessName}
                     onChange={(e) => setForm({ ...form, businessName: e.target.value })}
                     placeholder="Business name"
-                    className="rounded-xl border border-background/10 bg-transparent px-3 py-2 text-sm text-background outline-none placeholder:text-background/35"
+                    className="rounded-xl border border-white/10 bg-transparent px-3 py-2 text-sm text-background outline-none placeholder:text-background/35 focus:border-[#38BDF8]/50"
                   />
                   <select
                     value={form.industry}
                     onChange={(e) => setForm({ ...form, industry: e.target.value })}
-                    className="rounded-xl border border-background/10 bg-transparent px-3 py-2 text-sm text-background/80 outline-none [&>option]:text-stage"
+                    className="rounded-xl border border-white/10 bg-transparent px-3 py-2 text-sm text-background/80 outline-none focus:border-[#38BDF8]/50 [&>option]:text-stage"
                   >
                     <option value="">Industry</option>
                     {INDUSTRIES.map((i) => (
@@ -169,12 +181,12 @@ export function DnaExperience() {
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
                     placeholder="City"
-                    className="rounded-xl border border-background/10 bg-transparent px-3 py-2 text-sm text-background outline-none placeholder:text-background/35"
+                    className="rounded-xl border border-white/10 bg-transparent px-3 py-2 text-sm text-background outline-none placeholder:text-background/35 focus:border-[#38BDF8]/50"
                   />
                 </div>
                 <button
                   onClick={submit}
-                  className="mt-3 w-full rounded-xl bg-background py-3 text-sm font-medium text-stage transition hover:opacity-90"
+                  className="mt-3 w-full rounded-xl bg-gradient-to-r from-[#38BDF8] via-[#6D8BFF] to-[#A855F7] py-3 text-sm font-semibold text-white shadow-[0_0_40px_-8px_rgba(120,120,255,0.75)] transition hover:brightness-110"
                 >
                   Build my Business DNA
                 </button>
@@ -192,7 +204,7 @@ export function DnaExperience() {
               className="w-full max-w-md"
             >
               <div className="mb-6 flex items-center justify-center gap-2 text-sm text-background/70">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#7BE3B0] shadow-[0_0_10px_#7BE3B0]" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22D3EE] shadow-[0_0_10px_#22D3EE]" />
                 {latest?.label ?? "Analyzing…"}
               </div>
               <ul className="space-y-2.5">
@@ -206,7 +218,7 @@ export function DnaExperience() {
                       className="rounded-xl border border-background/10 bg-background/[0.04] px-4 py-3 backdrop-blur-sm"
                     >
                       <div className="flex items-center gap-2 text-sm font-medium text-background">
-                        <span className="text-brass">✓</span>
+                        <span className="text-[#38BDF8]">✓</span>
                         {e.label}
                       </div>
                       {e.patch?.headline && (
@@ -246,7 +258,7 @@ export function DnaExperience() {
               <p className="text-background/70">The analysis was interrupted.</p>
               <button
                 onClick={reset}
-                className="mt-4 rounded-full border border-background/20 px-5 py-2 text-sm"
+                className="mt-4 rounded-full border border-white/20 px-5 py-2 text-sm transition hover:bg-white/10"
               >
                 Try again
               </button>
@@ -262,8 +274,8 @@ export function DnaExperience() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="border-t border-background/10 py-4">
-      <div className="text-xs uppercase tracking-[0.2em] text-brass">{label}</div>
+    <div className="border-t border-white/10 py-4">
+      <div className="text-xs uppercase tracking-[0.2em] text-[#7DD3FC]">{label}</div>
       <div className="mt-2 text-background/85">{children}</div>
     </div>
   );
@@ -296,7 +308,11 @@ function DnaReveal({
       className="w-full max-w-3xl"
     >
       <div className="text-center">
-        <p className="text-xs uppercase tracking-[0.3em] text-brass">Business DNA Complete</p>
+        <p className="text-xs uppercase tracking-[0.3em]">
+          <span className="bg-gradient-to-r from-[#38BDF8] to-[#A855F7] bg-clip-text text-transparent">
+            Business DNA Complete
+          </span>
+        </p>
         <h2 className="mt-3 font-sans text-3xl font-medium tracking-[-0.02em] sm:text-5xl">
           {b.identity.displayName}
         </h2>
@@ -347,7 +363,7 @@ function DnaReveal({
         <div className="flex items-center gap-4">
           <button
             onClick={onTalk}
-            className="rounded-full bg-background px-6 py-3 text-sm font-medium text-stage shadow-[0_0_50px_-8px_rgba(255,255,255,0.4)] transition hover:opacity-90"
+            className="rounded-full bg-gradient-to-r from-[#38BDF8] via-[#6D8BFF] to-[#A855F7] px-6 py-3 text-sm font-semibold text-white shadow-[0_0_50px_-6px_rgba(120,120,255,0.8)] transition hover:brightness-110"
           >
             Talk to {emp?.name ?? "your AI"}
           </button>

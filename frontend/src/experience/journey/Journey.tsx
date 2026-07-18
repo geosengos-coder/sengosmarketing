@@ -31,7 +31,7 @@ function JourneyCopy() {
   const wakeOpacity = smoothstep(0.82, 0.92, p);
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-10">
+    <div className="pointer-events-none absolute inset-0 z-10 [text-shadow:0_2px_22px_rgba(0,0,0,0.7)]">
       {/* Beat 1 — the operating system */}
       <div
         className="absolute inset-x-0 top-0 flex flex-col items-center px-6 pt-[15vh] text-center"
@@ -124,6 +124,16 @@ export function Journey() {
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4"
           style={{ background: "linear-gradient(to top, hsl(var(--stage)) 8%, transparent 100%)" }}
+          aria-hidden
+        />
+        {/* Central readability scrim — darkens the upper-center where the copy sits
+            so headings stay legible over the bright brain core, brain still glowing. */}
+        <div
+          className="pointer-events-none absolute inset-0 z-[2]"
+          style={{
+            background:
+              "radial-gradient(82% 58% at 50% 40%, hsl(var(--stage) / 0.62) 0%, hsl(var(--stage) / 0.28) 46%, transparent 72%)",
+          }}
           aria-hidden
         />
 
